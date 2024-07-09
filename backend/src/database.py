@@ -1,9 +1,9 @@
-from sqlalchemy import create_engine
+from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-
 from .config import settings
 
-engine = create_engine(settings.db.URL.get_secret_value(), echo=True)
+engine = create_async_engine(settings.db.URL.get_secret_value(), echo=True)
 session_maker = sessionmaker(engine, expire_on_commit=False)
 
 
@@ -11,7 +11,7 @@ class Base(DeclarativeBase):
     pass
 
 
-def get_session():
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
     try:
         with session_maker() as session:
             yield session
