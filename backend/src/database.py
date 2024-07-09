@@ -1,7 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-engine = create_engine("...", echo=True)
+from .config import settings
+
+engine = create_engine(settings.db.URL.get_secret_value(), echo=True)
 session_maker = sessionmaker(engine, expire_on_commit=False)
 
 
