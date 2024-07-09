@@ -1,11 +1,14 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-engine = create_engine("...", echo=True)
+from .config import settings
+
+engine = create_engine(settings.db.URL.get_secret_value(), echo=True)
 session_maker = sessionmaker(engine, expire_on_commit=False)
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
 
 
 def get_session():
