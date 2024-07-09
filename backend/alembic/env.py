@@ -3,8 +3,18 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
+import os
+import sys
+
+sys.path.append(os.path.join(sys.path[0], "src"))
+
 from alembic import context
+
+from src.users.models import User
+from src.files_upload.models import FileUpload
 from src.database import Base
+from src.config import settings
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -25,6 +35,9 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+config.set_main_option(
+    "sqlalchemy.url", f"{settings.db.URL.get_secret_value()}?async_fallback=True"
+)
 
 
 def run_migrations_offline() -> None:
