@@ -3,8 +3,8 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from ..database import Base
-from src.users.models import User
+from src.database import Base
+from src.auth.models import User
 
 
 class FileUpload(Base):

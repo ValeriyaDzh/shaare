@@ -10,7 +10,7 @@ sys.path.append(os.path.join(sys.path[0], "src"))
 
 from alembic import context
 
-from src.users.models import User
+from src.auth.models import User
 from src.files_upload.models import FileUpload
 from src.database import Base
 from src.config import settings
