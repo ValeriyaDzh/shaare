@@ -1,8 +1,12 @@
+import logging
+
 from src.exeptions import AlreadyExists, NotFoundException
 from src.repositories import BaseRepository
 from src.auth.utils import Password
-from src.users.models import User
-from src.users.schemas import CreateUser
+from backend.src.auth.models import User
+from src.auth.schemas import CreateUser
+
+logger = logging.getLogger(__name__)
 
 
 class UserService(BaseRepository):
@@ -18,6 +22,7 @@ class UserService(BaseRepository):
         data_dict = data.model_dump()
         password = data_dict.pop("password")
         data_dict["hashed_password"] = Password.hash(password)
+        logger.debug(f"Prepared user: {data_dict}")
 
         created_user = await self.save(data_dict)
 
@@ -48,6 +53,7 @@ class UserService(BaseRepository):
         :return: the updated User.
         """
         new_used_mb = current_user.used_mb + mb
+        logger.debug(f"Megabytes to add: {new_used_mb}")
         updated_user = await self.update(
             "id", current_user.id, {"used_mb": new_used_mb}
         )
