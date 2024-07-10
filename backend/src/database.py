@@ -1,9 +1,13 @@
-from sqlalchemy import create_engine
+import logging
+from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from src.config import settings
+from src.exeptions import DatabaseException
 
-from .config import settings
+logger = logging.getLogger(__name__)
 
-engine = create_engine(settings.db.URL.get_secret_value(), echo=True)
+engine = create_async_engine(settings.db.URL.get_secret_value(), echo=True)
 session_maker = sessionmaker(engine, expire_on_commit=False)
 
 
@@ -11,9 +15,10 @@ class Base(DeclarativeBase):
     pass
 
 
-def get_session():
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
     try:
         with session_maker() as session:
             yield session
     except OSError as e:
-        print(f"Failed to connect to the database: {e}")
+        logger.error(f"Database connection failed: {e}")
+        raise DatabaseException
