@@ -1,9 +1,12 @@
+import logging
 from typing import Any
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
-from .exeptions import DatabaseException
+from src.exeptions import DatabaseException
+
+logger = logging.getLogger(__name__)
 
 
 class BaseRepository:
@@ -29,7 +32,8 @@ class BaseRepository:
             self.session.add(entity)
             await self.session.commit()
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
+            logger.error(f"Error save entity in the database: {e}")
             raise DatabaseException
 
     async def get(self, key: str, value: str) -> Any:
@@ -47,7 +51,8 @@ class BaseRepository:
             )
             return entity.scalar_one_or_none()
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
+            logger.error(f"Error get entity in the database: {e}")
             raise DatabaseException
 
     async def update(self, key: str, value: str, playload: dict[str, Any]) -> Any:
@@ -71,5 +76,6 @@ class BaseRepository:
             await self.session.commit()
             return entity.scalar_one()
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
+            logger.error(f"Error update entity in the database: {e}")
             raise DatabaseException
