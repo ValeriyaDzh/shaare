@@ -23,8 +23,18 @@ class DatabaseSettings(BaseSettings):
         )
 
 
+class JWTSettings(BaseSettings):
+
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    SECRET_KEY: SecretStr
+    ALGORITHM: str
+
+    model_config = SettingsConfigDict(env_prefix="JWT_", extra="ignore")
+
+
 class Settings(BaseSettings):
     db: DatabaseSettings = DatabaseSettings()
+    jwt: JWTSettings = JWTSettings()
 
 
 settings = Settings()
