@@ -16,7 +16,7 @@ class BaseRepository:
         self.model = model
         self.session = session
 
-    async def create(self, playload: dict[str, Any]) -> Any:
+    async def save(self, playload: dict[str, Any]) -> Any:
         """
         Save a new entity in the database.
 
