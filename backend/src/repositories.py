@@ -31,6 +31,7 @@ class BaseRepository:
             entity = self.model(**playload)
             self.session.add(entity)
             await self.session.commit()
+            return entity
 
         except SQLAlchemyError as e:
             logger.error(f"Error save entity in the database: {e}")
@@ -52,7 +53,7 @@ class BaseRepository:
             return entity.scalar_one_or_none()
 
         except SQLAlchemyError as e:
-            logger.error(f"Error get entity in the database: {e}")
+            logger.error(f"Error get entity from the database: {e}")
             raise DatabaseException
 
     async def update(self, key: str, value: str, playload: dict[str, Any]) -> Any:
