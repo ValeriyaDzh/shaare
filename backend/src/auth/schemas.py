@@ -19,19 +19,21 @@ class UpdateUser(BaseModel):
 
 
 class LoginForm(BaseModel):
+
     login: str
     password: str
 
 
 class Token(BaseModel):
+
     access_token: str
     token_type: str
 
 
-class UserAlreadyExistException:
+class UserAlreadyExistException(BaseModel):
 
-    code: int
-    detail: str
+    code: int = 409
+    detail: str = "This login is already in use"
 
 
 # class UserNotFoundException:

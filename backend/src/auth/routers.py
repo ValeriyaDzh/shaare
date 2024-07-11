@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, status
+
+from src.exeptions import InvalidCredentialsException
 from src.auth.schemas import LoginForm, Token
 from src.auth.dependencies import get_user_service
 from src.auth.schemas import ShowUser, CreateUser, UserAlreadyExistException
-from backend.src.auth.services import UserService
+from src.auth.services import UserService
+from src.auth.utils import Password, JWTToken
 
 users_auth_router = APIRouter(prefix="/auth", tags=["Auth"])
-users_router = APIRouter(prefix="/auth", tags=["User"])
 
 
 @users_auth_router.post(
@@ -26,4 +28,11 @@ async def create_user(
 async def login_for_access_token(
     form_data: LoginForm, user_service: UserService = Depends(get_user_service)
 ):
-    pass
+    user = await user_service.get_by_login(form_data.login)
+
+    if user and Password.verify(form_data.password, user.hashed_password):
+        access_token = await JWTToken.create_access_token({"sub": form_data.login})
+    else:
+        raise InvalidCredentialsException("Incorrect login or password")
+
+    return {"access_token": access_token, "token_type": "bearer"}
