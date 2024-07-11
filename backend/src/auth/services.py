@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 class UserService(BaseRepository):
 
     def __init__(self, session, model=User):
-        super.__init__(session, model=model)
+        super().__init__(model=model, session=session)
 
     async def create(self, data: CreateUser) -> User:
 
-        if self.get("login", data.login):
+        if await self.get_by_login(data.login):
             raise AlreadyExists(detail="This login is already in use")
 
         data_dict = data.model_dump()
@@ -33,16 +33,11 @@ class UserService(BaseRepository):
         Get user from the database.
 
         :param login: the user's login.
-        :param mb: a megabytes to add to `used_mb`.
-        :return: the User.
-        :raises NotFoundException: If the user whith this login doesn't exist.
+        :return: the User if found, else None.
         """
 
-        user = self.get("login", login)
-        if not user:
-            raise NotFoundException(detail="User not found")
-
-        return await self.get("login", login)
+        user = await self.get("login", login)
+        return user
 
     async def add_mb(self, current_user: User, mb: float) -> User:
         """
