@@ -17,6 +17,8 @@ class User(Base):
         nullable=False,
         unique=True,
     )
+    login = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
     used_mb = Column(Float)
-    files = relationship("FileUpload", back_populates="owner")
+
+    # files = relationship("FileUpload", back_populates="owner")
