@@ -2,6 +2,7 @@ import logging
 from jose import JWTError
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_session
 from src.exeptions import InvalidCredentialsException
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/sign-in")
 
 
-async def get_user_service(session=Depends(get_session)):
+async def get_user_service(session: AsyncSession = Depends(get_session)):
     return UserService(session=session)
 
 
