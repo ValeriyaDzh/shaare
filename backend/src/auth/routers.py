@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from src.auth.schemas import LoginForm, Token
 from src.auth.dependencies import get_user_service
 from src.auth.schemas import ShowUser, CreateUser, UserAlreadyExistException
-from backend.src.auth.services import UserService
+from src.auth.services import UserService
 
 users_auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 users_router = APIRouter(prefix="/auth", tags=["User"])

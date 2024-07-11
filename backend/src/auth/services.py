@@ -3,7 +3,7 @@ import logging
 from src.exeptions import AlreadyExists, NotFoundException
 from src.repositories import BaseRepository
 from src.auth.utils import Password
-from backend.src.auth.models import User
+from src.auth.models import User
 from src.auth.schemas import CreateUser
 
 logger = logging.getLogger(__name__)
