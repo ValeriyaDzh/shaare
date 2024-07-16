@@ -31,7 +31,7 @@ async def login_for_access_token(
     user = await user_service.get_by_login(form_data.login)
 
     if user and Password.verify(form_data.password, user.hashed_password):
-        access_token = await JWTToken.create_access_token({"sub": form_data.login})
+        access_token = JWTToken.create_access_token({"sub": form_data.login})
     else:
         raise InvalidCredentialsException("Incorrect login or password")
 
