@@ -1,6 +1,7 @@
 import logging
+from uuid import UUID
 from typing import Any
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -79,4 +80,20 @@ class BaseRepository:
 
         except SQLAlchemyError as e:
             logger.error(f"Error update entity in the database: {e}")
+            raise DatabaseException
+
+    async def delete(self, entity_id: UUID) -> None:
+        """
+        Delete an entity from the database by id.
+
+        :param entity_id: the id of the entity.
+        :raises DatabaseException: if a database error occurs.
+        """
+        try:
+            await self.session.execute(
+                delete(self.model).where(self.model.id == entity_id)
+            )
+            await self.session.commit()
+        except SQLAlchemyError as e:
+            logger.error(f"Error deleting in the database: {e}")
             raise DatabaseException

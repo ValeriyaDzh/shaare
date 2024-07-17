@@ -1,3 +1,5 @@
+from typing import Any, Dict
+from typing_extensions import Annotated, Doc
 from fastapi import HTTPException, status
 
 
@@ -25,3 +27,9 @@ class InvalidCredentialsException(HTTPException):
 
     def __init__(self, detail: str = "Could not validate credentials") -> None:
         super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+
+
+class BadRequestException(HTTPException):
+
+    def __init__(self, detail: str = "Bad request") -> None:
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
