@@ -1,6 +1,6 @@
-import shutil
 from fastapi import APIRouter, Depends, status, UploadFile, File
 from fastapi.responses import FileResponse
+
 from src.auth.dependencies import get_current_user_from_token
 from src.auth.models import User
 from src.files_upload.dependencies import get_uploadfile_service, valid_filename
@@ -23,17 +23,23 @@ async def upload_file(
     file_service: FileUploadService = Depends(get_uploadfile_service),
     user: User = Depends(get_current_user_from_token),
 ):
-    uploaded_file = await file_service.upload(upload_file, user.id)
-
+    uploaded_file = await file_service.upload(
+        upload_file, user.id, upload_file.content_type[6:]
+    )
     return uploaded_file
 
 
 @files_upload_router.get(
-    "/{file_name}", status_code=status.HTTP_200_OK, response_class=FileResponse
+    "/{file_id}", status_code=status.HTTP_200_OK, response_class=FileResponse
 )
 async def get_uploaded_file(file: FileUpload = Depends(valid_filename)):
     return file.file_path
 
 
-@files_upload_router.delete("/{file_name}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_file(file: FileUpload = Depends(valid_filename)): ...
+@files_upload_router.delete("/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_file(
+    file: FileUpload = Depends(valid_filename),
+    file_service: FileUploadService = Depends(get_uploadfile_service),
+    user: User = Depends(get_current_user_from_token),
+):
+    await file_service.delete_from_database(file)
