@@ -1,5 +1,6 @@
 import logging
 from fastapi import Depends
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import get_session
@@ -15,10 +16,10 @@ async def get_uploadfile_service(session: AsyncSession = Depends(get_session)):
 
 
 async def valid_filename(
-    file_name: str, file_service: FileUploadService = Depends(get_uploadfile_service)
+    file_id: UUID, file_service: FileUploadService = Depends(get_uploadfile_service)
 ) -> FileUpload:
 
-    file = await file_service.get_file_by_name(file_name)
+    file = await file_service.get_file_by_id(file_id)
     if file is None:
-        raise NotFoundException(f"Not found file: {file_name}")
+        raise NotFoundException(f"Not found file")
     return file
