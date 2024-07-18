@@ -2,7 +2,7 @@ import logging
 from uuid import UUID, uuid4
 from fastapi import UploadFile
 
-from src.exeptions import BadRequestException
+from src.exeptions import BadRequestException, AlreadyExists
 from src.repositories import BaseRepository
 from src.files_upload.models import FileUpload
 from src.files_upload.ulils import File
@@ -12,25 +12,33 @@ logger = logging.getLogger(__name__)
 
 class FileUploadService(BaseRepository):
 
-    def __init__(self, session, model=FileUpload):
-        super().__init__(model=model, session=session)
+    def __init__(self, session):
+        super().__init__(model=FileUpload, session=session)
 
     async def get_file_by_id(self, file_id: UUID) -> FileUpload:
         file = await self.get("id", file_id)
         return file
 
-    async def upload(self, data: UploadFile, user_id: UUID, format: str) -> FileUpload:
+    async def is_filename_exist(self, file_name: str) -> bool:
+        file = await self.get("filename", file_name)
+        return file is not None
 
+    async def upload(self, data: UploadFile, user_id: UUID, format: str) -> FileUpload:
         if data.content_type[:5] == "image":
+            if self.is_filename_exist(data.filename):
+                raise AlreadyExists("File with this name already exist")
 
             file_id = uuid4()
-            path = await File.save_to_server(file_id, data.file, format)
-
-            if path:
+            path = await File.create_path(file_id, format)
+            try:
                 uploaded_file = await self.add_to_database(
                     user_id, file_id, data.filename, path, data.size
                 )
+                await File.save_to_server(path, data.file)
                 return uploaded_file
+
+            except Exception as e:
+                logger.error(f"Error saving the file in database: {e}")
 
         else:
             raise BadRequestException(
