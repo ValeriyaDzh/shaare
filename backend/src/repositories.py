@@ -31,7 +31,6 @@ class BaseRepository:
         try:
             entity = self.model(**playload)
             self.session.add(entity)
-            await self.session.commit()
             return entity
 
         except SQLAlchemyError as e:
@@ -75,7 +74,6 @@ class BaseRepository:
                 .returning(self.model)
             )
             entity = await self.session.execute(updated_entity)
-            await self.session.commit()
             return entity.scalar_one()
 
         except SQLAlchemyError as e:
@@ -93,7 +91,7 @@ class BaseRepository:
             await self.session.execute(
                 delete(self.model).where(self.model.id == entity_id)
             )
-            await self.session.commit()
+
         except SQLAlchemyError as e:
             logger.error(f"Error deleting in the database: {e}")
             raise DatabaseException

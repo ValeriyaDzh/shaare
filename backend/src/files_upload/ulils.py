@@ -14,9 +14,12 @@ class File:
     """
 
     @classmethod
-    async def save_to_server(cls, filename: UUID, data: BinaryIO, format: str) -> str:
+    async def create_path(cls, filename: UUID, format: str) -> str:
+        return f"{os.getcwd()}/src/uploaded_files/{filename}.{format}"
+
+    @classmethod
+    async def save_to_server(cls, path: str, data: BinaryIO) -> str:
         try:
-            path = f"{os.getcwd()}/src/uploaded_files/{filename}.{format}"
             with open(path, "+wb") as p:
                 shutil.copyfileobj(data, p)
 
