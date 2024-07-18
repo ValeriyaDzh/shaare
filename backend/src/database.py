@@ -8,7 +8,7 @@ from src.exeptions import DatabaseException
 logger = logging.getLogger(__name__)
 
 engine = create_async_engine(settings.db.URL.get_secret_value(), echo=True)
-session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
 class Base(DeclarativeBase):
@@ -17,7 +17,7 @@ class Base(DeclarativeBase):
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     try:
-        async with session_maker() as session:
+        async with async_session_maker() as session:
             yield session
     except OSError as e:
         logger.error(f"Database connection failed: {e}")
