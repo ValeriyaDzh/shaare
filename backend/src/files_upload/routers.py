@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, status, UploadFile, File
 from fastapi.responses import FileResponse
 
+from src.database import get_session, transaction
 from src.auth.dependencies import get_current_user_from_token
 from src.auth.models import User
+from src.auth.services import UserService
 from src.files_upload.dependencies import get_uploadfile_service, valid_filename
 from src.files_upload.models import FileUpload
 from src.files_upload.schemas import ShowAploadedFile
@@ -20,13 +22,18 @@ files_upload_router = APIRouter(prefix="", tags=["Files_Upload"])
 )
 async def upload_file(
     upload_file: UploadFile = File(...),
-    file_service: FileUploadService = Depends(get_uploadfile_service),
+    session: FileUploadService = Depends(get_session),
     user: User = Depends(get_current_user_from_token),
 ):
-    uploaded_file = await file_service.upload(
-        upload_file, user.id, upload_file.content_type[6:]
-    )
-    return uploaded_file
+    file_service = FileUploadService(session)
+    user_service = UserService(session)
+
+    async with transaction(session):
+        uploaded_file = await file_service.upload(
+            upload_file, user.id, upload_file.content_type[6:]
+        )
+        await user_service.update_used_mb(user, uploaded_file.size_mb, "add")
+        return uploaded_file
 
 
 @files_upload_router.get(
@@ -39,7 +46,12 @@ async def get_uploaded_file(file: FileUpload = Depends(valid_filename)):
 @files_upload_router.delete("/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_file(
     file: FileUpload = Depends(valid_filename),
-    file_service: FileUploadService = Depends(get_uploadfile_service),
+    session: FileUploadService = Depends(get_session),
     user: User = Depends(get_current_user_from_token),
 ):
-    await file_service.delete_from_database(file)
+    file_service = FileUploadService(session)
+    user_service = UserService(session)
+
+    async with transaction(session):
+        await user_service.update_used_mb(user, file.size_mb, "subtract")
+        await file_service.delete_from_database(file)
