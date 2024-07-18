@@ -1,4 +1,5 @@
 import logging
+from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
@@ -21,4 +22,15 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
             yield session
     except OSError as e:
         logger.error(f"Database connection failed: {e}")
+        raise DatabaseException
+
+
+@asynccontextmanager
+async def transaction(session: AsyncSession):
+    try:
+        yield
+        await session.commit()
+    except Exception as e:
+        await session.rollback()
+        logger.error(f"Database error: {e}")
         raise DatabaseException
