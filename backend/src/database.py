@@ -4,7 +4,7 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from src.config import settings
-from src.exeptions import DatabaseException, AlreadyExists
+from src.exeptions import DatabaseException, AlreadyExistsException
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ async def transaction(session: AsyncSession):
     try:
         yield
         await session.commit()
-    except AlreadyExists:
+    except AlreadyExistsException:
         raise
     except Exception as e:
         await session.rollback()

@@ -2,7 +2,7 @@ import logging
 from uuid import UUID, uuid4
 from fastapi import UploadFile
 
-from src.exeptions import BadRequestException, AlreadyExists
+from src.exeptions import UnsupportedMediaTypeException, AlreadyExistsException
 from src.repositories import BaseRepository
 from src.files_upload.models import FileUpload
 from src.files_upload.ulils import File
@@ -26,7 +26,7 @@ class FileUploadService(BaseRepository):
     async def upload(self, data: UploadFile, user_id: UUID, format: str) -> FileUpload:
         if data.content_type[:5] == "image":
             if self.is_filename_exist(data.filename):
-                raise AlreadyExists("File with this name already exist")
+                raise AlreadyExistsException("File with this name already exist")
 
             file_id = uuid4()
             path = await File.create_path(file_id, format)
@@ -34,14 +34,16 @@ class FileUploadService(BaseRepository):
                 uploaded_file = await self.add_to_database(
                     user_id, file_id, data.filename, path, data.size
                 )
-                await File.save_to_server(path, data.file)
-                return uploaded_file
 
             except Exception as e:
                 logger.error(f"Error saving the file in database: {e}")
 
+            else:
+                await File.save_to_server(path, data.file)
+                return uploaded_file
+
         else:
-            raise BadRequestException(
+            raise UnsupportedMediaTypeException(
                 "Invalid format. Valid file formats: PNG, JPEG, GIF, RAW, TIFF, BMP, PSD, SVG, PDF, EPS, AI, CDR"
             )
 
