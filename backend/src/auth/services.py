@@ -1,6 +1,6 @@
 import logging
 
-from src.exeptions import AlreadyExists, NotFoundException
+from src.exeptions import AlreadyExistsException, NotFoundException
 from src.repositories import BaseRepository
 from src.auth.utils import Password
 from src.auth.models import User
@@ -17,7 +17,7 @@ class UserService(BaseRepository):
     async def create(self, data: CreateUser) -> User:
 
         if await self.get_by_login(data.login):
-            raise AlreadyExists(detail="This login is already in use")
+            raise AlreadyExistsException(detail="This login is already in use")
 
         data_dict = data.model_dump()
         password = data_dict.pop("password")
