@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, status, UploadFile, File
 from fastapi.responses import FileResponse
 
 from src.database import get_session, transaction
+from src.exeptions import RequestEntityTooLargeException
 from src.auth.dependencies import get_current_user_from_token
 from src.auth.models import User
 from src.auth.services import UserService
-from src.files_upload.dependencies import get_uploadfile_service, valid_filename
+from src.files_upload.dependencies import valid_filename
 from src.files_upload.models import FileUpload
 from src.files_upload.schemas import ShowAploadedFile
 from src.files_upload.services import FileUploadService
@@ -28,12 +29,17 @@ async def upload_file(
     file_service = FileUploadService(session)
     user_service = UserService(session)
 
-    async with transaction(session):
-        uploaded_file = await file_service.upload(
-            upload_file, user.id, upload_file.content_type[6:]
+    if user.used_mb + file_service._bytes_to_megabytes(upload_file.size) <= 200:
+        async with transaction(session):
+            uploaded_file = await file_service.upload(
+                upload_file, user.id, upload_file.content_type[6:]
+            )
+            await user_service.update_used_mb(user, uploaded_file.size_mb, "add")
+            return uploaded_file
+    else:
+        raise RequestEntityTooLargeException(
+            "The uploaded file exceeds the user's allocated storage limit."
         )
-        await user_service.update_used_mb(user, uploaded_file.size_mb, "add")
-        return uploaded_file
 
 
 @files_upload_router.get(
