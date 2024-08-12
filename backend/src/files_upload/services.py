@@ -25,7 +25,7 @@ class FileUploadService(BaseRepository):
 
     async def upload(self, data: UploadFile, user_id: UUID, format: str) -> FileUpload:
         if data.content_type[:5] == "image":
-            if self.is_filename_exist(data.filename):
+            if await self.is_filename_exist(data.filename):
                 raise AlreadyExistsException("File with this name already exist")
 
             file_id = uuid4()
