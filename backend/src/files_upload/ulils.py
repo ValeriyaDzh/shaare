@@ -1,4 +1,4 @@
-import shutil
+import aiofiles
 import os
 import logging
 from pathlib import Path
@@ -20,9 +20,8 @@ class File:
     @classmethod
     async def save_to_server(cls, path: str, data: BinaryIO) -> str:
         try:
-            with open(path, "+wb") as p:
-                shutil.copyfileobj(data, p)
-
+            async with aiofiles.open(path, "+wb") as p:
+                await p.write(data.read())
             if os.path.exists(path):
                 return path
 
